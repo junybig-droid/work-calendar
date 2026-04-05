@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#185FA5">
+<title>업무 달력</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans KR',sans-serif;background:#f5f5f3;min-height:100vh;padding:1rem}
+.app{border:1px solid #e0ddd6;border-radius:12px;overflow:hidden;background:#fff;max-width:960px;margin:0 auto}
+
+/* 데스크탑 */
+.desktop-layout{display:grid;grid-template-columns:1.8fr 1fr;min-height:580px}
+.cal-side{padding:1.25rem;border-right:1px solid #e0ddd6;display:flex;flex-direction:column}
+.tasks-side{display:grid;grid-template-rows:1fr 1fr;background:#f9f8f5}
+.cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem}
+.cal-header h2{font-size:16px;font-weight:500;color:#1a1a1a}
+.nav-btn{background:none;border:1px solid #e0ddd6;border-radius:8px;width:30px;height:30px;cursor:pointer;color:#666;font-size:18px;display:flex;align-items:center;justify-content:center;line-height:1}
+.nav-btn:hover{background:#f5f5f3}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;flex:1}
+.day-label{text-align:center;font-size:10px;color:#999;padding:4px 0;font-weight:500}
+.day-cell{border-radius:6px;cursor:pointer;padding:3px;border:1px solid transparent;min-height:70px;display:flex;flex-direction:column}
+.day-cell:hover{border-color:#e0ddd6;background:#f9f8f5}
+.day-cell.selected{border-color:#185FA5;background:#eef4fb}
+.day-cell.today .day-num{border:1.5px solid #185FA5;color:#185FA5}
+.day-cell.today.selected .day-num{background:#185FA5;color:#fff;border-color:#185FA5}
+.day-cell.other-month{opacity:0.3}
+.day-num{width:22px;height:22px;display:flex;align-items:center;justify-content:center;border-radius:50%;font-size:12px;color:#1a1a1a;flex-shrink:0;margin-bottom:2px}
+.task-previews{display:flex;flex-direction:column;gap:1px;overflow:hidden;flex:1}
+.tp{font-size:10px;line-height:1.3;border-radius:3px;padding:1px 4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tp-todo{background:#eef4fb;color:#185FA5}
+.tp-done{background:#e4f4ed;color:#0F6E56;text-decoration:line-through}
+.tp-more{font-size:10px;color:#aaa;padding-left:4px}
+
+/* 패널 공통 */
+.task-panel{padding:1rem 1.25rem;border-bottom:1px solid #e0ddd6}
+.task-panel:last-child{border-bottom:none}
+.panel-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:0.6rem}
+.panel-title{font-size:11px;font-weight:500;color:#888;text-transform:uppercase;letter-spacing:0.07em}
+.count-badge{font-size:11px;font-weight:500;padding:2px 8px;border-radius:20px}
+.todo-badge{background:#eef4fb;color:#185FA5}
+.done-badge{background:#e4f4ed;color:#0F6E56}
+.selected-date-label{font-size:11px;color:#888;margin-bottom:0.5rem}
+.task-list{display:flex;flex-direction:column;gap:5px;min-height:50px;max-height:140px;overflow-y:auto}
+.task-item{display:flex;align-items:center;gap:8px;padding:7px 10px;background:#fff;border:1px solid #e0ddd6;border-radius:8px;cursor:grab;user-select:none;transition:box-shadow 0.1s}
+.task-item:active{cursor:grabbing;box-shadow:0 2px 8px rgba(0,0,0,0.1)}
+.task-item.dragging{opacity:0.4}
+.check-btn{width:18px;height:18px;border-radius:50%;border:1.5px solid #b5d4f4;background:none;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all 0.15s}
+.check-btn:hover{border-color:#185FA5;background:#eef4fb}
+.done-check{border-color:#1D9E75;background:#1D9E75}
+.check-icon{color:#fff;font-size:10px;font-weight:700}
+.task-text{font-size:13px;color:#1a1a1a;flex:1;line-height:1.4}
+.task-text.done-text{text-decoration:line-through;color:#aaa}
+.del-btn{background:none;border:none;cursor:pointer;color:#ccc;font-size:14px;padding:2px 4px;opacity:0;transition:opacity 0.1s}
+.task-item:hover .del-btn{opacity:1}
+.del-btn:hover{color:#e24b4a}
+.add-row{display:flex;gap:6px;margin-top:8px}
+.add-input{flex:1;font-size:13px;padding:7px 10px;border:1px solid #e0ddd6;border-radius:8px;background:#fff;color:#1a1a1a;outline:none;min-width:0}
+.add-input:focus{border-color:#185FA5}
+.add-btn{background:#185FA5;color:#fff;border:none;border-radius:8px;padding:7px 14px;font-size:13px;cursor:pointer;white-space:nowrap;font-weight:500}
+.add-btn:hover{background:#0c447c}
+.empty-msg{font-size:12px;color:#bbb;text-align:center;padding:1rem 0}
+.drop-zone{min-height:50px;border-radius:8px;transition:background 0.15s}
+.drop-zone.drag-active{background:#eef4fb;border:1.5px dashed #185FA5}
+.drop-zone-done.drag-active{background:#e4f4ed;border:1.5px dashed #1D9E75}
+
+/* 모바일 탭 */
+.mobile-tabs{display:none;border-bottom:1px solid #e0ddd6}
+.tab-btn{flex:1;padding:13px 0;font-size:14px;font-weight:500;background:none;border:none;cursor:pointer;color:#888;border-bottom:2px solid transparent;transition:all 0.15s}
+.tab-btn.active{color:#185FA5;border-bottom-color:#185FA5}
+.mobile-cal{display:none;padding:1rem}
+.mobile-tasks{display:none}
+.mobile-task-panel{padding:1rem 1.25rem}
+.mobile-task-panel+.mobile-task-panel{border-top:1px solid #e0ddd6}
+.back-btn{display:none;align-items:center;gap:6px;background:none;border:none;cursor:pointer;color:#185FA5;font-size:13px;padding:0.85rem 1.25rem;border-bottom:1px solid #e0ddd6;width:100%;font-weight:500}
+
+/* 모바일 달력 셀 */
+.mobile-day-cell{border-radius:6px;cursor:pointer;padding:4px 2px;border:1px solid transparent;min-height:46px;display:flex;flex-direction:column;align-items:center}
+.mobile-day-cell:hover{background:#f5f5f3}
+.mobile-day-cell.selected{border-color:#185FA5;background:#eef4fb}
+.mobile-day-cell.today .day-num{border:1.5px solid #185FA5;color:#185FA5}
+.mobile-day-cell.today.selected .day-num{background:#185FA5;color:#fff;border-color:#185FA5}
+.mobile-day-cell.other-month{opacity:0.3}
+.dot-row{display:flex;gap:2px;justify-content:center;margin-top:3px}
+.dot{width:5px;height:5px;border-radius:50%}
+.dot-todo{background:#185FA5}
+.dot-done{background:#1D9E75}
+
+/* 모바일 task-list 높이 조정 */
+@media(max-width:640px){
+  body{padding:0}
+  .app{border-radius:0;border-left:none;border-right:none;min-height:100vh}
+  .desktop-layout{display:none!important}
+  .mobile-tabs{display:flex}
+  .mobile-cal,.mobile-tasks{display:block}
+  .mobile-cal.hidden,.mobile-tasks.hidden{display:none}
+  .back-btn{display:flex}
+  .task-list{max-height:200px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- 데스크탑 레이아웃 -->
+  <div class="desktop-layout">
+    <div class="cal-side">
+      <div class="cal-header">
+        <button class="nav-btn" id="d-prev">&#8249;</button>
+        <h2 id="d-month-label"></h2>
+        <button class="nav-btn" id="d-next">&#8250;</button>
+      </div>
+      <div class="cal-grid" id="d-cal-grid"></div>
+    </div>
+    <div class="tasks-side">
+      <div class="task-panel">
+        <div class="panel-header">
+          <span class="panel-title">할 일</span>
+          <span class="count-badge todo-badge" id="d-todo-count">0</span>
+        </div>
+        <div class="selected-date-label" id="d-selected-label"></div>
+        <div class="drop-zone task-list" id="d-todo-list"></div>
+        <div class="add-row">
+          <input class="add-input" id="d-add-input" placeholder="새 할 일 입력..." />
+          <button class="add-btn" id="d-add-btn">추가</button>
+        </div>
+      </div>
+      <div class="task-panel">
+        <div class="panel-header">
+          <span class="panel-title">완료</span>
+          <span class="count-badge done-badge" id="d-done-count">0</span>
+        </div>
+        <div class="drop-zone drop-zone-done task-list" id="d-done-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 모바일 레이아웃 -->
+  <div class="mobile-tabs">
+    <button class="tab-btn active" id="tab-cal">📅 달력</button>
+    <button class="tab-btn" id="tab-tasks">✓ 할 일</button>
+  </div>
+  <div class="mobile-cal" id="mobile-cal">
+    <div class="cal-header">
+      <button class="nav-btn" id="m-prev">&#8249;</button>
+      <h2 id="m-month-label"></h2>
+      <button class="nav-btn" id="m-next">&#8250;</button>
+    </div>
+    <div class="cal-grid" id="m-cal-grid"></div>
+  </div>
+  <div class="mobile-tasks hidden" id="mobile-tasks">
+    <button class="back-btn" id="back-btn">&#8592; 달력으로</button>
+    <div class="mobile-task-panel">
+      <div class="panel-header">
+        <span class="panel-title">할 일</span>
+        <span class="count-badge todo-badge" id="m-todo-count">0</span>
+      </div>
+      <div class="selected-date-label" id="m-selected-label"></div>
+      <div class="drop-zone task-list" id="m-todo-list"></div>
+      <div class="add-row" style="margin-top:8px">
+        <input class="add-input" id="m-add-input" placeholder="새 할 일 입력..." />
+        <button class="add-btn" id="m-add-btn">추가</button>
+      </div>
+    </div>
+    <div class="mobile-task-panel">
+      <div class="panel-header">
+        <span class="panel-title">완료</span>
+        <span class="count-badge done-badge" id="m-done-count">0</span>
+      </div>
+      <div class="drop-zone drop-zone-done task-list" id="m-done-list"></div>
+    </div>
+  </div>
+
+</div>
+<script>
+const DAYS=['일','월','화','수','목','금','토'];
+const MONTHS=['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+let today=new Date();
+let cur={y:today.getFullYear(),m:today.getMonth()};
+let selectedDate=toKey(today);
+let tasks={};
+let dragItem=null,dragFrom=null;
+
+function toKey(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
+function getDay(k){if(!tasks[k])tasks[k]={todo:[],done:[]};return tasks[k]}
+function esc(t){return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+
+// localStorage 저장/불러오기
+function save(){try{localStorage.setItem('wc_tasks',JSON.stringify(tasks));}catch(e){}}
+function load(){try{const d=localStorage.getItem('wc_tasks');if(d)tasks=JSON.parse(d);}catch(e){}}
+
+function renderCal(gridId,labelId,mobile){
+  const grid=document.getElementById(gridId);
+  document.getElementById(labelId).textContent=`${cur.y}년 ${MONTHS[cur.m]}`;
+  grid.innerHTML=DAYS.map(d=>`<div class="day-label">${d}</div>`).join('');
+  const first=new Date(cur.y,cur.m,1);
+  const last=new Date(cur.y,cur.m+1,0);
+  const startDow=first.getDay();
+  const prevLast=new Date(cur.y,cur.m,0).getDate();
+  const cells=[];
+  for(let i=startDow-1;i>=0;i--) cells.push({d:prevLast-i,other:true,mo:cur.m-1,y:cur.y});
+  for(let d=1;d<=last.getDate();d++) cells.push({d,other:false,mo:cur.m,y:cur.y});
+  let rem=42-cells.length;
+  for(let d=1;d<=rem;d++) cells.push({d,other:true,mo:cur.m+1,y:cur.y});
+  cells.forEach(c=>{
+    const date=new Date(c.y,c.mo,c.d);
+    const k=toKey(date);
+    const isToday=k===toKey(today);
+    const isSel=k===selectedDate;
+    const dayData=tasks[k];
+    const el=document.createElement('div');
+    if(mobile){
+      el.className='mobile-day-cell'+(c.other?' other-month':'')+(isToday?' today':'')+(isSel?' selected':'');
+      const hasTodo=dayData&&dayData.todo.length>0;
+      const hasDone=dayData&&dayData.done.length>0;
+      el.innerHTML=`<div class="day-num">${c.d}</div><div class="dot-row">${hasTodo?'<div class="dot dot-todo"></div>':''}${hasDone?'<div class="dot dot-done"></div>':''}</div>`;
+      el.onclick=()=>{selectedDate=k;renderAll();switchMobileTab('tasks');};
+    } else {
+      el.className='day-cell'+(c.other?' other-month':'')+(isToday?' today':'')+(isSel?' selected':'');
+      let ph='<div class="task-previews">';
+      if(dayData){
+        const all=[...dayData.todo.map(t=>({t,type:'todo'})),...dayData.done.map(t=>({t,type:'done'}))];
+        all.slice(0,3).forEach(({t,type})=>{ph+=`<div class="tp tp-${type}">${esc(t)}</div>`;});
+        if(all.length>3) ph+=`<div class="tp-more">+${all.length-3}개 더</div>`;
+      }
+      ph+='</div>';
+      el.innerHTML=`<div class="day-num">${c.d}</div>${ph}`;
+      el.onclick=()=>{selectedDate=k;renderAll();};
+    }
+    grid.appendChild(el);
+  });
+}
+
+function renderTasks(prefix){
+  const data=getDay(selectedDate);
+  const td=document.getElementById(prefix+'todo-list');
+  const dd=document.getElementById(prefix+'done-list');
+  const sl=document.getElementById(prefix+'selected-label');
+  const parts=selectedDate.split('-');
+  sl.textContent=`${parts[0]}년 ${parseInt(parts[1])}월 ${parseInt(parts[2])}일`;
+  document.getElementById(prefix+'todo-count').textContent=data.todo.length;
+  document.getElementById(prefix+'done-count').textContent=data.done.length;
+  td.innerHTML='';dd.innerHTML='';
+  if(!data.todo.length) td.innerHTML='<div class="empty-msg">할 일이 없습니다</div>';
+  data.todo.forEach((t,i)=>td.appendChild(makeItem(t,i,'todo')));
+  if(!data.done.length) dd.innerHTML='<div class="empty-msg">완료된 항목이 없습니다</div>';
+  data.done.forEach((t,i)=>dd.appendChild(makeItem(t,i,'done')));
+  setupDropZone(td,'todo');
+  setupDropZone(dd,'done');
+}
+
+function makeItem(text,idx,type){
+  const el=document.createElement('div');
+  el.className='task-item';
+  el.draggable=true;
+  el.innerHTML=type==='todo'
+    ?`<button class="check-btn"><span class="check-icon" style="display:none">✓</span></button><span class="task-text">${esc(text)}</span><button class="del-btn">✕</button>`
+    :`<button class="check-btn done-check"><span class="check-icon">✓</span></button><span class="task-text done-text">${esc(text)}</span><button class="del-btn">✕</button>`;
+  const cb=el.querySelector('.check-btn');
+  const ci=cb.querySelector('.check-icon');
+  if(type==='todo'){cb.onmouseenter=()=>ci.style.display='block';cb.onmouseleave=()=>ci.style.display='none';}
+  cb.onclick=(e)=>{e.stopPropagation();toggleTask(idx,type);};
+  el.querySelector('.del-btn').onclick=(e)=>{e.stopPropagation();deleteTask(idx,type);};
+  el.ondragstart=(e)=>{dragItem=idx;dragFrom=type;el.classList.add('dragging');e.dataTransfer.effectAllowed='move';};
+  el.ondragend=()=>{el.classList.remove('dragging');document.querySelectorAll('.drag-active').forEach(x=>x.classList.remove('drag-active'));};
+  return el;
+}
+
+function setupDropZone(el,type){
+  el.ondragover=(e)=>{e.preventDefault();el.classList.add('drag-active');};
+  el.ondragleave=()=>el.classList.remove('drag-active');
+  el.ondrop=(e)=>{
+    e.preventDefault();el.classList.remove('drag-active');
+    if(dragItem===null||dragFrom===type) return;
+    const data=getDay(selectedDate);
+    const item=data[dragFrom].splice(dragItem,1)[0];
+    data[type].push(item);
+    save();renderAll();
+  };
+}
+
+function toggleTask(idx,type){
+  const data=getDay(selectedDate);
+  const item=data[type].splice(idx,1)[0];
+  data[type==='todo'?'done':'todo'].push(item);
+  save();renderAll();
+}
+function deleteTask(idx,type){
+  getDay(selectedDate)[type].splice(idx,1);
+  save();renderAll();
+}
+function addTask(prefix){
+  const inp=document.getElementById(prefix+'add-input');
+  const val=inp.value.trim();
+  if(!val) return;
+  getDay(selectedDate).todo.push(val);
+  inp.value='';
+  save();renderAll();
+}
+function switchMobileTab(tab){
+  document.getElementById('mobile-cal').classList.toggle('hidden',tab!=='cal');
+  document.getElementById('mobile-tasks').classList.toggle('hidden',tab!=='tasks');
+  document.getElementById('tab-cal').classList.toggle('active',tab==='cal');
+  document.getElementById('tab-tasks').classList.toggle('active',tab==='tasks');
+}
+function renderAll(){
+  renderCal('d-cal-grid','d-month-label',false);
+  renderCal('m-cal-grid','m-month-label',true);
+  renderTasks('d-');
+  renderTasks('m-');
+}
+
+document.getElementById('d-prev').onclick=()=>{cur.m--;if(cur.m<0){cur.m=11;cur.y--;}renderAll();};
+document.getElementById('d-next').onclick=()=>{cur.m++;if(cur.m>11){cur.m=0;cur.y++;}renderAll();};
+document.getElementById('m-prev').onclick=()=>{cur.m--;if(cur.m<0){cur.m=11;cur.y--;}renderAll();};
+document.getElementById('m-next').onclick=()=>{cur.m++;if(cur.m>11){cur.m=0;cur.y++;}renderAll();};
+document.getElementById('d-add-btn').onclick=()=>addTask('d-');
+document.getElementById('m-add-btn').onclick=()=>addTask('m-');
+document.getElementById('d-add-input').onkeydown=(e)=>{if(e.key==='Enter')addTask('d-');};
+document.getElementById('m-add-input').onkeydown=(e)=>{if(e.key==='Enter')addTask('m-');};
+document.getElementById('tab-cal').onclick=()=>switchMobileTab('cal');
+document.getElementById('tab-tasks').onclick=()=>switchMobileTab('tasks');
+document.getElementById('back-btn').onclick=()=>switchMobileTab('cal');
+
+load();
+renderAll();
+</script>
+</body>
+</html>
