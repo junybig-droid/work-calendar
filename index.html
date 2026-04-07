@@ -16,38 +16,38 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans KR',sans
 .sync-dot.err{background:#e24b4a}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
 
-/* 데스크탑 */
 .desktop-layout{display:grid;grid-template-columns:1.8fr 1fr;min-height:560px}
-.cal-side{padding:1.25rem;border-right:1px solid #e0ddd6;display:flex;flex-direction:column}
-.tasks-side{display:grid;grid-template-rows:1fr 1fr;background:#f9f8f5}
+.cal-side{padding:1.25rem;border-right:1px solid #e0ddd6;display:flex;flex-direction:column;min-width:0}
+.tasks-side{display:grid;grid-template-rows:1fr 1fr;background:#f9f8f5;min-width:0}
 .cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem}
 .cal-header h2{font-size:16px;font-weight:500;color:#1a1a1a}
-.nav-btn{background:none;border:1px solid #e0ddd6;border-radius:8px;width:30px;height:30px;cursor:pointer;color:#666;font-size:18px;display:flex;align-items:center;justify-content:center}
+.nav-btn{background:none;border:1px solid #e0ddd6;border-radius:8px;width:30px;height:30px;cursor:pointer;color:#666;font-size:18px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .nav-btn:hover{background:#f5f5f3}
-.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;flex:1}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;flex:1;min-width:0}
 .day-label{text-align:center;font-size:10px;color:#999;padding:4px 0;font-weight:500}
-.day-cell{border-radius:6px;cursor:pointer;padding:3px;border:1px solid transparent;min-height:70px;display:flex;flex-direction:column}
+.day-cell{border-radius:6px;cursor:pointer;padding:3px;border:1px solid transparent;min-height:70px;display:flex;flex-direction:column;min-width:0;overflow:hidden}
 .day-cell:hover{border-color:#e0ddd6;background:#f9f8f5}
 .day-cell.selected{border-color:#185FA5;background:#eef4fb}
 .day-cell.today .day-num{border:1.5px solid #185FA5;color:#185FA5}
 .day-cell.today.selected .day-num{background:#185FA5;color:#fff;border-color:#185FA5}
 .day-cell.other-month{opacity:0.3}
 .day-num{width:22px;height:22px;display:flex;align-items:center;justify-content:center;border-radius:50%;font-size:12px;color:#1a1a1a;flex-shrink:0;margin-bottom:2px}
-.task-previews{display:flex;flex-direction:column;gap:1px;overflow:hidden;flex:1}
-.tp{font-size:10px;line-height:1.3;border-radius:3px;padding:1px 4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.task-previews{display:flex;flex-direction:column;gap:1px;overflow:hidden;flex:1;min-width:0}
+.tp{font-size:10px;line-height:1.3;border-radius:3px;padding:1px 4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
 .tp-todo{background:#eef4fb;color:#185FA5}
 .tp-done{background:#e4f4ed;color:#0F6E56;text-decoration:line-through}
 .tp-more{font-size:10px;color:#aaa;padding-left:4px}
-.task-panel{padding:1rem 1.25rem;border-bottom:1px solid #e0ddd6}
+
+.task-panel{padding:1rem 1.25rem;border-bottom:1px solid #e0ddd6;min-width:0}
 .task-panel:last-child{border-bottom:none}
 .panel-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:0.6rem}
 .panel-title{font-size:11px;font-weight:500;color:#888;text-transform:uppercase;letter-spacing:0.07em}
-.count-badge{font-size:11px;font-weight:500;padding:2px 8px;border-radius:20px}
+.count-badge{font-size:11px;font-weight:500;padding:2px 8px;border-radius:20px;flex-shrink:0}
 .todo-badge{background:#eef4fb;color:#185FA5}
 .done-badge{background:#e4f4ed;color:#0F6E56}
 .selected-date-label{font-size:11px;color:#888;margin-bottom:0.5rem}
-.task-list{display:flex;flex-direction:column;gap:5px;min-height:50px;max-height:140px;overflow-y:auto}
-.task-item{display:flex;align-items:center;gap:8px;padding:7px 10px;background:#fff;border:1px solid #e0ddd6;border-radius:8px;cursor:grab;user-select:none}
+.task-list{display:flex;flex-direction:column;gap:5px;min-height:50px;max-height:140px;overflow-y:auto;min-width:0}
+.task-item{display:flex;align-items:center;gap:8px;padding:7px 10px;background:#fff;border:1px solid #e0ddd6;border-radius:8px;cursor:grab;user-select:none;min-width:0;overflow:hidden}
 .task-item:active{cursor:grabbing}
 .task-item.dragging{opacity:0.4}
 .check-btn{width:18px;height:18px;border-radius:50%;border:1.5px solid #b5d4f4;background:none;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all 0.15s}
@@ -56,26 +56,25 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans KR',sans
 .check-icon{color:#fff;font-size:10px;font-weight:700}
 .task-text{font-size:13px;color:#1a1a1a;flex:1;line-height:1.4;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
 .task-text.done-text{text-decoration:line-through;color:#aaa}
-.del-btn{background:none;border:none;cursor:pointer;color:#ccc;font-size:14px;padding:2px 4px;opacity:0;transition:opacity 0.1s}
+.del-btn{background:none;border:none;cursor:pointer;color:#ccc;font-size:14px;padding:2px 4px;opacity:0;transition:opacity 0.1s;flex-shrink:0}
 .task-item:hover .del-btn{opacity:1}
 .del-btn:hover{color:#e24b4a}
-.add-row{display:flex;gap:6px;margin-top:8px}
+.add-row{display:flex;gap:6px;margin-top:8px;min-width:0}
 .add-input{flex:1;font-size:13px;padding:7px 10px;border:1px solid #e0ddd6;border-radius:8px;background:#fff;color:#1a1a1a;outline:none;min-width:0}
 .add-input:focus{border-color:#185FA5}
-.add-btn{background:#185FA5;color:#fff;border:none;border-radius:8px;padding:7px 14px;font-size:13px;cursor:pointer;white-space:nowrap;font-weight:500}
+.add-btn{background:#185FA5;color:#fff;border:none;border-radius:8px;padding:7px 14px;font-size:13px;cursor:pointer;white-space:nowrap;font-weight:500;flex-shrink:0}
 .add-btn:hover{background:#0c447c}
 .empty-msg{font-size:12px;color:#bbb;text-align:center;padding:1rem 0}
 .drop-zone{min-height:50px;border-radius:8px;transition:background 0.15s}
 .drop-zone.drag-active{background:#eef4fb;border:1.5px dashed #185FA5}
 .drop-zone-done.drag-active{background:#e4f4ed;border:1.5px dashed #1D9E75}
 
-/* 모바일 */
 .mobile-tabs{display:none;border-bottom:1px solid #e0ddd6}
 .tab-btn{flex:1;padding:13px 0;font-size:14px;font-weight:500;background:none;border:none;cursor:pointer;color:#888;border-bottom:2px solid transparent;transition:all 0.15s}
 .tab-btn.active{color:#185FA5;border-bottom-color:#185FA5}
 .mobile-cal{display:none;padding:1rem}
 .mobile-tasks{display:none}
-.mobile-task-panel{padding:1rem 1.25rem}
+.mobile-task-panel{padding:1rem 1.25rem;min-width:0}
 .mobile-task-panel+.mobile-task-panel{border-top:1px solid #e0ddd6}
 .back-btn{display:none;align-items:center;gap:6px;background:none;border:none;cursor:pointer;color:#185FA5;font-size:13px;padding:0.85rem 1.25rem;border-bottom:1px solid #e0ddd6;width:100%;font-weight:500}
 .mobile-day-cell{border-radius:6px;cursor:pointer;padding:4px 2px;border:1px solid transparent;min-height:46px;display:flex;flex-direction:column;align-items:center}
@@ -108,7 +107,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans KR',sans
     <span id="sync-msg">연결 중...</span>
   </div>
 
-  <!-- 데스크탑 -->
   <div class="desktop-layout">
     <div class="cal-side">
       <div class="cal-header">
@@ -141,7 +139,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans KR',sans
     </div>
   </div>
 
-  <!-- 모바일 -->
   <div class="mobile-tabs">
     <button class="tab-btn active" id="tab-cal">📅 달력</button>
     <button class="tab-btn" id="tab-tasks">✓ 할 일</button>
@@ -206,12 +203,9 @@ let dragItem=null,dragFrom=null;
 let saveTimer=null;
 
 function setSyncStatus(status,msg){
-  const dot=document.getElementById('sync-dot');
-  const txt=document.getElementById('sync-msg');
-  dot.className='sync-dot '+status;
-  txt.textContent=msg;
+  document.getElementById('sync-dot').className='sync-dot '+status;
+  document.getElementById('sync-msg').textContent=msg;
 }
-
 function toKey(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
 function getDay(k){if(!tasks[k])tasks[k]={todo:[],done:[]};return tasks[k]}
 function esc(t){return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
@@ -220,23 +214,16 @@ function save(){
   clearTimeout(saveTimer);
   saveTimer=setTimeout(()=>{
     setSyncStatus('syncing','저장 중...');
-    set(tasksRef, tasks).then(()=>{
-      setSyncStatus('ok','동기화 완료');
-    }).catch(()=>{
-      setSyncStatus('err','저장 실패');
-    });
+    set(tasksRef,tasks).then(()=>setSyncStatus('ok','동기화 완료')).catch(()=>setSyncStatus('err','저장 실패'));
   },600);
 }
 
-// Firebase 실시간 동기화
-onValue(tasksRef, (snapshot)=>{
+onValue(tasksRef,(snapshot)=>{
   const data=snapshot.val();
   if(data) tasks=data;
   setSyncStatus('ok','동기화 완료');
   renderAll();
-}, (error)=>{
-  setSyncStatus('err','연결 실패');
-});
+},(error)=>setSyncStatus('err','연결 실패'));
 
 function renderCal(gridId,labelId,mobile){
   const grid=document.getElementById(gridId);
@@ -249,8 +236,7 @@ function renderCal(gridId,labelId,mobile){
   const cells=[];
   for(let i=startDow-1;i>=0;i--) cells.push({d:prevLast-i,other:true,mo:cur.m-1,y:cur.y});
   for(let d=1;d<=last.getDate();d++) cells.push({d,other:false,mo:cur.m,y:cur.y});
-  let rem=42-cells.length;
-  for(let d=1;d<=rem;d++) cells.push({d,other:true,mo:cur.m+1,y:cur.y});
+  for(let d=1;d<=42-cells.length;d++) cells.push({d,other:true,mo:cur.m+1,y:cur.y});
   cells.forEach(c=>{
     const date=new Date(c.y,c.mo,c.d);
     const k=toKey(date);
@@ -268,9 +254,7 @@ function renderCal(gridId,labelId,mobile){
       el.className='day-cell'+(c.other?' other-month':'')+(isToday?' today':'')+(isSel?' selected':'');
       let ph='<div class="task-previews">';
       if(dayData){
-        const todo=dayData.todo||[];
-        const done=dayData.done||[];
-        const all=[...todo.map(t=>({t,type:'todo'})),...done.map(t=>({t,type:'done'}))];
+        const all=[...(dayData.todo||[]).map(t=>({t,type:'todo'})),...(dayData.done||[]).map(t=>({t,type:'done'}))];
         all.slice(0,3).forEach(({t,type})=>{ph+=`<div class="tp tp-${type}">${esc(t)}</div>`;});
         if(all.length>3) ph+=`<div class="tp-more">+${all.length-3}개 더</div>`;
       }
@@ -286,9 +270,8 @@ function renderTasks(prefix){
   const data=getDay(selectedDate);
   const td=document.getElementById(prefix+'todo-list');
   const dd=document.getElementById(prefix+'done-list');
-  const sl=document.getElementById(prefix+'selected-label');
   const parts=selectedDate.split('-');
-  sl.textContent=`${parts[0]}년 ${parseInt(parts[1])}월 ${parseInt(parts[2])}일`;
+  document.getElementById(prefix+'selected-label').textContent=`${parts[0]}년 ${parseInt(parts[1])}월 ${parseInt(parts[2])}일`;
   document.getElementById(prefix+'todo-count').textContent=(data.todo||[]).length;
   document.getElementById(prefix+'done-count').textContent=(data.done||[]).length;
   td.innerHTML='';dd.innerHTML='';
@@ -304,6 +287,7 @@ function makeItem(text,idx,type){
   const el=document.createElement('div');
   el.className='task-item';
   el.draggable=true;
+  el.title=text;
   el.innerHTML=type==='todo'
     ?`<button class="check-btn"><span class="check-icon" style="display:none">✓</span></button><span class="task-text">${esc(text)}</span><button class="del-btn">✕</button>`
     :`<button class="check-btn done-check"><span class="check-icon">✓</span></button><span class="task-text done-text">${esc(text)}</span><button class="del-btn">✕</button>`;
@@ -333,16 +317,14 @@ function setupDropZone(el,type){
 
 function toggleTask(idx,type){
   const data=getDay(selectedDate);
-  const arr=data[type]||[];
-  const item=arr.splice(idx,1)[0];
+  const item=(data[type]||[]).splice(idx,1)[0];
   const target=type==='todo'?'done':'todo';
   if(!data[target]) data[target]=[];
   data[target].push(item);
   save();renderAll();
 }
 function deleteTask(idx,type){
-  const data=getDay(selectedDate);
-  (data[type]||[]).splice(idx,1);
+  (getDay(selectedDate)[type]||[]).splice(idx,1);
   save();renderAll();
 }
 function addTask(prefix){
