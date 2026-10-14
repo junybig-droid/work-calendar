@@ -68,6 +68,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans KR',sans
 .slot-item:hover .slot-del{opacity:1}
 .slot-del:hover{color:#b84c4c}
 .slot-hint{font-size:10px;color:#ccc;padding:5px 0;font-style:italic}
+.task-item.picked{border-color:#c9a84c;background:#fdf3e3;box-shadow:0 0 0 2px #f0dca8}
+.pick-target{cursor:pointer;border:1.5px dashed #e3c97f;border-radius:6px;background:#fffaf0}
+.pick-target:active{background:#fdf3e3}
+.pick-target .slot-hint{color:#c9a84c}
+.pick-bar{display:none;align-items:center;gap:8px;background:#fdf3e3;border:1px solid #e3c97f;border-radius:8px;padding:7px 10px;margin-bottom:8px;font-size:12px;color:#6b4c00;position:sticky;top:0;z-index:5}
+.pick-bar .pick-name{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;flex:1}
+.pick-bar button{background:none;border:1px solid #e3c97f;border-radius:6px;padding:3px 8px;font-size:11px;color:#8a5c00;cursor:pointer;flex-shrink:0}
 
 /* ── 공통 오른쪽 패널 ── */
 .tasks-side{display:grid;grid-template-rows:1fr 1fr;background:#f2efe8;min-width:0}
@@ -189,6 +196,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans KR',sans
         <button class="back-btn" id="back-btn">&#8592; 달력</button>
         <span class="tl-date-title" id="tl-date-title"></span>
       </div>
+      <div class="pick-bar"><span class="pick-name"></span><span>→ 넣을 시간을 클릭</span><button class="pick-cancel">취소</button></div>
       <div class="tl-body" id="tl-body"></div>
     </div>
     <div class="tasks-side">
@@ -229,8 +237,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans KR',sans
   </div>
   <div class="mobile-tasks hidden" id="mobile-tasks">
     <button class="m-back-btn" id="m-back-btn">&#8592; 달력으로</button>
-    <div class="m-tl-wrap">
+    <div class="m-tl-wrap" id="m-tl-wrap">
       <div class="m-tl-title" id="m-tl-title">시간표</div>
+      <div class="pick-bar"><span class="pick-name"></span><span>→ 시간 선택</span><button class="pick-cancel">취소</button></div>
       <div id="m-tl-body"></div>
     </div>
     <div class="m-task-wrap">
@@ -271,7 +280,7 @@ const firebaseConfig={
 
 const app=initializeApp(firebaseConfig);
 const db=getDatabase(app);
-const dbRef=ref(db,'tasks_v2');
+const dbRef=ref(db,'tasks');
 
 const DAYS=['일','월','화','수','목','금','토'];
 const MONTHS=['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
@@ -283,6 +292,7 @@ let selDate=toKey(today);
 let currentView='cal';
 let tasks={};
 let dragging=null;
+let picked=null; // 탭으로 선택한 할 일 {text,type,idx}
 let saveTimer=null;
 
 function toKey(d){return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
@@ -376,7 +386,7 @@ function renderTimeline(bodyId,timeId,mobile){
           <span class="slot-text">${esc(it.text)}</span>
           <button class="slot-del" data-h="${h}" data-i="${i}" data-act="del">✕</button>
         </div>`).join('')
-      :`<div class="slot-hint">드래그해서 놓기</div>`;
+      :`<div class="slot-hint">${picked?'여기에 넣기':(mobile?'할 일을 탭한 뒤 여기를 탭':'드래그하거나 할 일 클릭 후 여기 클릭')}</div>`;
     row.innerHTML=`<div class="${mobile?'m-tl-time':'tl-time'}">${h}</div><div class="${mobile?'m-tl-slot':'tl-slot'}" id="${mobile?'ms':'ts'}-${h}">${itemsHTML}</div>`;
     body.appendChild(row);
     const slot=row.querySelector(mobile?'.m-tl-slot':'.tl-slot');
@@ -388,19 +398,45 @@ function renderTimeline(bodyId,timeId,mobile){
       const d2=getDay(selDate);
       if(!d2.slots[h])d2.slots[h]=[];
       d2.slots[h].push({text:dragging.text,done:false});
-      if(dragging.from==='todo')d2.todo=(d2.todo||[]).filter((_,i)=>i!==dragging.idx);
-      if(dragging.from==='done')d2.done=(d2.done||[]).filter((_,i)=>i!==dragging.idx);
       dragging=null;save();renderAll();
     };
+    if(picked)slot.classList.add('pick-target');
+    slot.dataset.hour=h;
   });
-  body.addEventListener('click',e=>{
+  body.onclick=e=>{
     const act=e.target.dataset.act;
-    if(!act)return;
-    const h=e.target.dataset.h,i=parseInt(e.target.dataset.i);
     const d2=getDay(selDate);
-    if(act==='chk')d2.slots[h][i].done=!d2.slots[h][i].done;
-    if(act==='del'){d2.todo=(d2.todo||[]).concat(d2.slots[h][i].text);d2.slots[h].splice(i,1);}
-    save();renderAll();
+    if(act){
+      const h=e.target.dataset.h,i=parseInt(e.target.dataset.i);
+      if(act==='chk')d2.slots[h][i].done=!d2.slots[h][i].done;
+      if(act==='del')d2.slots[h].splice(i,1);
+      save();renderAll();return;
+    }
+    // 할 일 선택 상태에서 시간 칸을 누르면 그 시간에 배치
+    const slot=e.target.closest('[data-hour]');
+    if(!slot||!picked)return;
+    const h=slot.dataset.hour;
+    if(!d2.slots[h])d2.slots[h]=[];
+    d2.slots[h].push({text:picked.text,done:false});
+    picked=null;save();renderAll();
+  };
+}
+
+function pickTask(text,type,idx){
+  if(picked&&picked.type===type&&picked.idx===idx){picked=null;}
+  else{picked={text,type,idx};}
+  renderAll();
+  // 모바일: 시간표가 위에 있으니 자동으로 올려줌
+  if(picked&&window.innerWidth<=640){
+    document.getElementById('m-tl-wrap').scrollIntoView({behavior:'smooth',block:'start'});
+  }
+}
+function renderPickBars(){
+  document.querySelectorAll('.pick-bar').forEach(bar=>{
+    if(picked){
+      bar.style.display='flex';
+      bar.querySelector('.pick-name').textContent=picked.text;
+    }else bar.style.display='none';
   });
 }
 
@@ -431,6 +467,8 @@ function makeItem(text,idx,type){
   if(type==='todo'){cb.onmouseenter=()=>ci.style.display='block';cb.onmouseleave=()=>ci.style.display='none';}
   cb.onclick=e=>{e.stopPropagation();toggleTask(idx,type);};
   el.querySelector('.del-btn').onclick=e=>{e.stopPropagation();deleteTask(idx,type);};
+  if(picked&&picked.type===type&&picked.idx===idx)el.classList.add('picked');
+  el.onclick=()=>pickTask(text,type,idx);
   el.ondragstart=e=>{dragging={from:type,idx,text};el.classList.add('dragging');e.dataTransfer.effectAllowed='move';};
   el.ondragend=()=>{el.classList.remove('dragging');document.querySelectorAll('.drag-over,.dz-over,.dz-over-done').forEach(x=>{x.classList.remove('drag-over','dz-over','dz-over-done');});};
   return el;
@@ -497,7 +535,9 @@ function renderAll(){
   renderTimeline('m-tl-body','m-tl-title',true);
   document.getElementById('m-date-lbl').textContent=dateLabel(selDate);
   renderTasks('m-todo-list','m-done-list','m-todo-cnt','m-done-cnt',null,'m-add-inp');
+  renderPickBars();
 }
+document.querySelectorAll('.pick-cancel').forEach(b=>b.onclick=()=>{picked=null;renderAll();});
 
 /* 이벤트 */
 document.getElementById('d-prev').onclick=()=>{cur.m--;if(cur.m<0){cur.m=11;cur.y--;}renderAll();};
