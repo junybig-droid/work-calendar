@@ -294,6 +294,7 @@ let tasks={};
 let dragging=null;
 let picked=null; // 탭으로 선택한 할 일 {text,type,idx}
 let saveTimer=null;
+let loaded=false; // 서버 데이터 받기 전엔 저장 금지
 
 function toKey(d){return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
 function getDay(k){if(!tasks[k])tasks[k]={todo:[],done:[],slots:{}};if(!tasks[k].slots)tasks[k].slots={};return tasks[k]}
@@ -306,6 +307,7 @@ function setSyncStatus(s,m){
 }
 
 function save(){
+  if(!loaded){setSyncStatus('syncing','불러오는 중이라 저장 대기...');return;}
   clearTimeout(saveTimer);
   saveTimer=setTimeout(()=>{
     setSyncStatus('syncing','저장 중...');
@@ -316,6 +318,7 @@ function save(){
 onValue(dbRef,snap=>{
   const d=snap.val();
   if(d)tasks=d;
+  loaded=true;
   setSyncStatus('ok','동기화 완료');
   renderAll();
 },()=>setSyncStatus('err','연결 실패'));
